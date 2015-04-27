@@ -61,6 +61,12 @@ def checkCycle(graph, node_from, node_to, source_node):
 			break
  	return source_count, last_node
 
+def calculateRouteValue(graph, route):
+	ret_val = 0
+	for val in range(0,nm.size(route)-1):
+		ret_val += graph.edge[val][val+1]['length'];
+	return ret_val
+
 def calculateWindowsClarkeWrightRemake(graph, Z_V, window_size):
 	ret = nx.Graph()
         K_V = list(set(graph.nodes()) - set(Z_V))
@@ -74,7 +80,7 @@ def calculateWindowsClarkeWrightRemake(graph, Z_V, window_size):
 	for nodenum in K_V:
 		if nm.size(ret.node[nodenum]['mark'][0]) == 0 or nm.size(ret.node[nodenum]['mark'][1]) == 0:
 			print('Moc male okno')
-			return
+			return None, None, None
 	paths = list()
 	index = 0
         for node_from in K_V:
@@ -236,7 +242,33 @@ def calculateWindowsClarkeWrightRemake(graph, Z_V, window_size):
 	for nodenum in K_V:
 		ret.add_edge(nodenum, ret.node[nodenum]['mark'][0][0])
 		ret.add_edge(nodenum, ret.node[nodenum]['mark'][1][0])
-	return ret.edges(), ret
+	routes = list()
+	for node in Z_V:
+		for neigh in nx.neighbors(ret,node):
+			for route in nx.all_simple_paths(ret,node,neigh):
+				routes.append(route+[node])
+	for route in routes:
+		for i in range(1,nm.size(route)-1):
+			for j in range(i+1,nm.size(route)-1):
+				old_value = calculateRouteValue(graph,tmp)
+				tmp = list(route)
+				print(tmp)
+				val = tmp[i]
+				tmp[i] = tmp[j]
+				tmp[j] = val				
+				print(tmp)
+				new_value = calculateRouteValue(graph,tmp)
+				#print('Old:%d, New %d'%(old_value,new_value))
+				if new_value < old_value:
+					n_i = nx.neighbors(ret,tmp[i])
+					n_j = nx.neighbors(ret,tmp[j])
+					print(tmp[i])
+					print(tmp[j])
+
+	objval = 0
+	for edge in ret.edges():
+		objval += graph.edge[edge[0]][edge[1]]['length']
+	return objval, ret.edges(), routes
 			
 
 
